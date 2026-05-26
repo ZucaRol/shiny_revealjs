@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Presentación Dinámica</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/black.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        .reveal {
+            height: 100%;
+            width: 100%;
+        }
+        .reveal .slides section {
+            height: 100%;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides" id="slides-container">
+            <section>
+                <h2>Bienvenido</h2>
+                <p>Agrega slides desde Shiny</p>
+            </section>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.min.js"></script>
+    <script>
+        let deck = null;
+        
+        function initializeReveal() {
+            if (deck) {
+                deck.destroy(); // Limpiar instancia anterior
+            }
+            deck = new Reveal(document.querySelector('.reveal'), {
+                controls: true,
+                progress: true,
+                center: true,
+                hash: false,
+                embedded: true,
+                width: '100%',
+                height: '100%',
+                margin: 0.1,
+                transition: 'slide'
+            });
+            deck.initialize();
+        }
+        
+        function updateSlides(htmlContent) {
+            const container = document.getElementById('slides-container');
+            if (container) {
+                container.innerHTML = htmlContent;
+                if (deck) {
+                    deck.sync(); // Sincronizar nuevos slides
+                }
+            }
+        }
+        
+        // Exponer funciones globalmente
+        window.updateSlides = updateSlides;
+        window.initializeReveal = initializeReveal;
+        
+        // Inicializar al cargar
+        window.addEventListener('load', initializeReveal);
+    </script>
+</body>
+</html>
