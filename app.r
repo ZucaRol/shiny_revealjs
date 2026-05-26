@@ -1,4 +1,8 @@
 library(shiny)
+library(ggiraph)
+library(DT)
+library(tibble)
+library(ggplot2)
 
 app_file <- tryCatch(
   normalizePath(sys.frame(1)$ofile, winslash = "\\", mustWork = TRUE),
@@ -7,10 +11,14 @@ app_file <- tryCatch(
 
 source(file.path(dirname(app_file), "reveal_slides.R"), local = FALSE)
 
+mtcars_db <- rownames_to_column(mtcars, var = "carname")
+
 slide_type_labels <- c(
   "Texto" = "text",
   "Grafico Dispersion" = "scatter",
-  "Grafico Barras" = "bar"
+  "Grafico Barras" = "bar",
+  "Grafico Interactivo" = "interactive",
+  "Tabla DT" = "datatable"
 )
 
 build_demo_slide <- function(title, type) {
@@ -55,13 +63,64 @@ build_demo_slide <- function(title, type) {
         )
       }
     ),
+    interactive = slide_widget(
+      title = title,
+      subtitle = "ggiraph",
+      type_label = "HTML Widget",
+      fit = "contain",
+      widget = girafe(
+        ggobj = ggplot(
+          mtcars_db,
+          aes(
+            x = disp,
+            y = qsec,
+            tooltip = carname,
+            data_id = carname
+          )
+        ) +
+          geom_point_interactive(
+            size = 3,
+            hover_nearest = TRUE
+          ),
+        width_svg = 8,
+        height_svg = 5
+      )
+    ),
+    datatable = slide_widget(
+      title = title,
+      subtitle = "DT",
+      type_label = "HTML Widget",
+      widget = datatable(
+        mtcars_db,
+        options = list(
+          pageLength = 8,
+          scrollX = TRUE
+        )
+      )
+    ),
     stop("Unsupported demo slide type: ", type)
   )
 }
 
+mi_estilo <- reveal_slides_style(
+  background_color = "#fcfcfc",
+  text_color = "#1f2937",
+  title_color = "#0f172a",
+  meta_color = "#475569",
+  accent_color = "#2563eb",
+  title_size = "clamp(1.3rem, 2vw, 2rem)",
+  body_size = "clamp(0.88rem, 1.1vw, 1.05rem)",
+  dt_font_scale = "1rem"
+)
+
+mi_presentacion <- reveal_slides_presentation(
+  theme = "white",
+  style = mi_estilo
+)
+
 ui <- fluidPage(
   tags$head(
-    reveal_slides_dependencies(theme = "black"),
+    reveal_slides_dependencies(presentation = mi_presentacion),
     tags$style(HTML("
       html, body {
         margin: 0;
@@ -190,13 +249,12 @@ server <- function(input, output, session) {
       paste0("presentacion_", Sys.Date(), ".html")
     },
     content = function(file) {
-      writeLines(
-        build_reveal_html(
-          slides = slides(),
-          title = "Mi Presentacion"
-        ),
-        file,
-        useBytes = TRUE
+      save_reveal_html(
+        slides = slides(),
+        file = file,
+        title = "Mi Presentacion",
+        presentation = mi_presentacion,
+        selfcontained = TRUE
       )
     }
   )
